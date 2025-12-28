@@ -1,102 +1,245 @@
-# Sentiment Analysis App (Flask)
+Here's a clean README.md you can copy and paste directly into VS Code:
 
-A clean, recruiter-friendly **sentiment analysis web app** that scores each line of text as **Positive / Negative / Neutral**.
+```markdown
+# FlowDesk AI - Intelligent Ticket Management Platform
 
-✅ Lightweight default backend (VADER)  
-✅ Optional higher-accuracy backend (Transformers)  
-✅ Tests + GitHub Actions CI  
+A full-stack SaaS application for managing support tickets with AI-powered triage, multi-step approval workflows, and role-based access control.
+
+![FlowDesk Dashboard](docs/dashboard.png)
 
 ---
 
 ## Features
 
-- Analyze **single text** or **multiple lines** (each line is analyzed separately)
-- Displays results in a clean table with a simple confidence score
-- Uses a safe default backend that **doesn't require heavy ML downloads**
-- Optional Transformers backend for higher accuracy (downloads model on first run)
+- **JWT Authentication & RBAC** - Secure user authentication with role-based permissions (Admin, Agent, User)
+- **Multi-Step Workflows** - Configurable approval chains (Submission → Review → Approval → Fulfillment)
+- **AI Ticket Triage** - Automatic category/priority classification and response suggestions using OpenAI API
+- **Async Job Processing** - Background tasks for SLA monitoring, notifications, and automation (Celery + Redis)
+- **Audit Logging** - Complete activity tracking for compliance and debugging
+- **Analytics Dashboard** - Real-time ticket status, priority distribution, and workflow metrics
+- **Docker Compose Setup** - One-command local development environment
 
 ---
 
 ## Tech Stack
 
-- **Python**
-- **Flask** (web server)
-- **VADER Sentiment** (default model)
-- Optional: **Hugging Face Transformers** + **PyTorch**
-- **Pytest** + **GitHub Actions** (CI)
+**Frontend**
+- Next.js 14
+- React
+- TailwindCSS
+
+**Backend**
+- FastAPI
+- PostgreSQL
+- Redis
+- Celery
+
+**AI/ML**
+- OpenAI API (GPT-4)
+- Fallback: Rule-based classifier
+
+**DevOps**
+- Docker & Docker Compose
+- JWT for authentication
 
 ---
 
-## Run locally
+## Quick Start
 
-### 1) Setup
+### Prerequisites
+- Docker & Docker Compose
+- OpenAI API key (optional - works with stub mode)
+
+### 1) Clone the repository
+```bash
+git clone https://github.com/kpatel3269/flowdesk-ai.git
+cd flowdesk-ai
+```
+
+### 2) Configure environment
+```bash
+cp .env.example .env
+# Edit .env and add your OpenAI API key (optional)
+```
+
+### 3) Start the stack
+```bash
+docker-compose up --build
+```
+
+### 4) Access the application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+
+---
+
+## Environment Variables
 
 ```bash
+# Database
+DATABASE_URL=postgresql://user:password@db:5432/flowdesk
+
+# Redis
+REDIS_URL=redis://redis:6379/0
+
+# JWT
+JWT_SECRET_KEY=your-secret-key-here
+
+# AI Triage (optional)
+OPENAI_API_KEY=sk-...
+AI_MODE=openai  # or 'stub' for rule-based fallback
+```
+
+---
+
+## Architecture
+
+```
+┌─────────────┐      ┌──────────────┐      ┌──────────────┐
+│   Next.js   │─────▶│   FastAPI    │─────▶│  PostgreSQL  │
+│  Frontend   │      │   Backend    │      │   Database   │
+└─────────────┘      └──────────────┘      └──────────────┘
+                            │
+                            ▼
+                     ┌──────────────┐      ┌──────────────┐
+                     │    Redis     │◀────▶│    Celery    │
+                     │    Cache     │      │    Worker    │
+                     └──────────────┘      └──────────────┘
+```
+
+---
+
+## Key Workflows
+
+### Ticket Lifecycle
+1. **Submission** - User creates ticket
+2. **AI Triage** - Auto-classify category/priority
+3. **Assignment** - Route to appropriate agent
+4. **Approval** - Manager reviews (if required)
+5. **Fulfillment** - Agent resolves ticket
+6. **Closure** - Automated or manual close
+
+### Background Jobs (Celery)
+- SLA monitoring and breach alerts
+- Scheduled ticket escalation
+- Email notifications
+- Analytics aggregation
+
+---
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Create new user
+- `POST /api/auth/login` - Get JWT token
+- `POST /api/auth/refresh` - Refresh token
+
+### Tickets
+- `GET /api/tickets` - List tickets (filtered by role)
+- `POST /api/tickets` - Create ticket
+- `GET /api/tickets/{id}` - Get ticket details
+- `PATCH /api/tickets/{id}` - Update ticket
+- `POST /api/tickets/{id}/assign` - Assign to agent
+
+### Admin
+- `GET /api/admin/analytics` - Dashboard metrics
+- `GET /api/admin/audit-logs` - Activity logs
+- `POST /api/admin/users` - Manage users
+
+Full API documentation: http://localhost:8000/docs
+
+---
+
+## Development
+
+### Run without Docker
+```bash
+# Backend
+cd backend
 python -m venv venv
-source venv/bin/activate   # mac/linux
-# venv\Scripts\activate  # windows
-
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# Frontend
+cd frontend
+npm install
+npm run dev
 ```
 
-### 2) Start the app
-
+### Run tests
 ```bash
-python run.py
+# Backend tests
+cd backend
+pytest
+
+# Frontend tests
+cd frontend
+npm test
 ```
 
-Open: `http://localhost:5000`
+### Database migrations
+```bash
+cd backend
+alembic revision --autogenerate -m "migration message"
+alembic upgrade head
+```
 
 ---
 
-## Optional: use Transformers backend (higher accuracy)
-
-```bash
-pip install -r requirements-transformers.txt
-export SENTIMENT_BACKEND=transformers   # mac/linux
-# set SENTIMENT_BACKEND=transformers    # windows (cmd)
-python run.py
-```
-
-You can also set a specific HF model:
-
-```bash
-export HF_SENTIMENT_MODEL=distilbert-base-uncased-finetuned-sst-2-english
-```
-
----
-
-## Project structure
+## Project Structure
 
 ```
-sentiment-analysis-app/
-  sentiment_app/
-    factory.py
-    routes.py
-    sentiment.py
-    preprocess.py
-  templates/
-    index.html
-  static/
-    styles.css
-  tests/
-    test_preprocess.py
-    test_sentiment_vader.py
-  run.py
-  requirements.txt
-  requirements-transformers.txt
+flowdesk-ai/
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── lib/
+│   └── package.json
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── models/
+│   │   ├── services/
+│   │   ├── tasks/          # Celery tasks
+│   │   └── main.py
+│   └── requirements.txt
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
 ## Roadmap
 
-- Add CSV upload for batch scoring
-- Add Dockerfile for one-command deploy
-- Add model evaluation notebook (accuracy/F1) and model card
+- [ ] Email integration (IMAP/SMTP)
+- [ ] Advanced analytics & reporting
+- [ ] Mobile app (React Native)
+- [ ] Webhook integrations (Slack, Teams)
+- [ ] Multi-tenancy support
+- [ ] Knowledge base & chatbot
 
 ---
 
 ## License
 
-MIT
+MIT License - See [LICENSE](LICENSE) file for details
+
+---
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+---
+
+## Contact
+
+**Kakksh Patel**  
+📧 kakshpatel2232@gmail.com  
+🔗 [LinkedIn](https://linkedin.com/in/Kakkshpatel)  
+💻 [GitHub](https://github.com/kakshp)
+```
+
