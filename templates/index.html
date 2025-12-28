@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentiment Analysis App</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>Sentiment Analysis</h1>
+        <p class="sub">Paste one line or multiple lines. Each line is analyzed separately.</p>
+      </div>
+      <div class="badge">Backend: {{ backend }}</div>
+    </header>
+
+    <section class="card">
+      <form method="POST" action="/" class="form">
+        <label for="text" class="label">Text</label>
+        <textarea id="text" name="text" placeholder="Example:
+I love this product.
+This is not great.
+Meh." rows="8"></textarea>
+        <div class="actions">
+          <button type="submit" class="btn">Analyze</button>
+          <button type="reset" class="btn secondary">Clear</button>
+        </div>
+      </form>
+
+      {% if error %}
+        <div class="alert">{{ error }}</div>
+      {% endif %}
+    </section>
+
+    {% if results %}
+    <section class="card">
+      <h2>Results</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Input</th>
+              <th>Sentiment</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in results %}
+              <tr>
+                <td class="mono">{{ r.text }}</td>
+                <td>
+                  <span class="pill {{ r.label|lower }}">{{ r.label }}</span>
+                </td>
+                <td>{{ (r.score * 100) | round(0) }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        Score is a simple confidence proxy. For higher accuracy, set <span class="mono">SENTIMENT_BACKEND=transformers</span>
+        and install <span class="mono">requirements-transformers.txt</span>.
+      </p>
+    </section>
+    {% endif %}
+
+    <footer class="footer">
+      <p>Built with Flask. Optional Transformers backend supported.</p>
+    </footer>
+  </main>
+</body>
+</html>
