@@ -1,4 +1,3 @@
-Here's a clean README.md you can copy and paste directly into VS Code:
 
 ```markdown
 # FlowDesk AI - Intelligent Ticket Management Platform
